@@ -5,7 +5,7 @@ import { MessageSquare, ChevronRight } from "lucide-react";
 const LanguageSelector = () => {
   const { changeLanguage } = useLanguage();
 
-  const { selectLanguage, english, hindi, marathi } = translations.english;
+  const { selectLanguage, english, hindi } = translations.english;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
@@ -35,16 +35,6 @@ const LanguageSelector = () => {
             className="w-full py-4 px-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-between group"
           >
             <span className="text-lg font-medium">{hindi}</span>
-            <span className="bg-white bg-opacity-20 rounded-full p-2 transform group-hover:translate-x-1 transition-transform">
-              <ChevronRight className="h-5 w-5" />
-            </span>
-          </button>
-
-          <button
-            onClick={() => changeLanguage("marathi")}
-            className="w-full py-4 px-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-between group"
-          >
-            <span className="text-lg font-medium">{marathi}</span>
             <span className="bg-white bg-opacity-20 rounded-full p-2 transform group-hover:translate-x-1 transition-transform">
               <ChevronRight className="h-5 w-5" />
             </span>

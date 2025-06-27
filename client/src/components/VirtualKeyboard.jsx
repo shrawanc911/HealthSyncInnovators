@@ -37,30 +37,6 @@ const VirtualKeyboard = ({ onKeyPress, onChangeAll, inputValue }) => {
             '{space}'
           ]
         };
-      case 'marathi':
-        return {
-          default: [
-            '` 1 2 3 4 5 6 7 8 9 0 - = {bksp}',
-            '{tab} q w e r t y u i o p [ ] \\',
-            '{lock} a s d f g h j k l ; \' {enter}',
-            '{shift} z x c v b n m , . / {shift}',
-            '{space}'
-          ],
-          shift: [
-            '~ ! @ # $ % ^ & * ( ) _ + {bksp}',
-            '{tab} Q W E R T Y U I O P { } |',
-            '{lock} A S D F G H J K L : " {enter}',
-            '{shift} Z X C V B N M < > ? {shift}',
-            '{space}'
-          ],
-          marathi: [
-            '` १ २ ३ ४ ५ ६ ७ ८ ९ ० - = {bksp}',
-            '{tab} ौ ै ा ी ू ब ह ग द ज ड ़ \\',
-            '{lock} ो े ् ि ु प र क त च ट {enter}',
-            '{shift} ं म न व ल स य भ , . / {shift}',
-            '{space}'
-          ]
-        };
       default:
         return {
           default: [
@@ -85,8 +61,6 @@ const VirtualKeyboard = ({ onKeyPress, onChangeAll, inputValue }) => {
   useEffect(() => {
     if (language === 'hindi') {
       setLayoutName('hindi');
-    } else if (language === 'marathi') {
-      setLayoutName('marathi');
     } else {
       setLayoutName('default');
     }

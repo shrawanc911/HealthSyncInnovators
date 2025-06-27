@@ -66,7 +66,7 @@ const AudioRecorder = forwardRef(({ onTranscriptChange }, ref) => {
         await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      const speechLanguage = language === 'hindi' ? 'hi-IN' : language === 'marathi' ? 'mr-IN' : 'en-US';
+      const speechLanguage = language === 'hindi' ? 'hi-IN' : 'en-US';
       await SpeechRecognition.startListening({
         continuous: useContinuous,
         language: speechLanguage,

@@ -218,7 +218,7 @@ const ChatInterface = () => {
               }}
               placeholder={t.chatPlaceholder}
               className="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-              lang={language === 'hindi' ? 'hi' : language === 'marathi' ? 'mr' : 'en'}
+              lang={language === 'hindi' ? 'hi' : 'en'}
               inputMode="text"
               autoComplete="off"
             />
@@ -235,8 +235,8 @@ const ChatInterface = () => {
             </button>
           </div>
           
-          {/* Only show virtual keyboard for Hindi and Marathi */}
-          {(language === 'hindi' || language === 'marathi') && (
+          {/* Only show virtual keyboard for Hindi */}
+          {language === 'hindi' && (
             <div className="mt-2">
               <VirtualKeyboard 
                 onKeyPress={(button) => {

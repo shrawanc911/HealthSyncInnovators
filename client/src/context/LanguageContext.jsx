@@ -14,7 +14,7 @@ export const detectLanguage = (text) => {
   // Define character ranges for different scripts
   const scripts = {
     english: /^[\u0000-\u007F\s]+$/, // Basic Latin (English)
-    devanagari: /[\u0900-\u097F]/, // Devanagari script (used by both Hindi and Marathi)
+    devanagari: /[\u0900-\u097F]/, // Devanagari script (used by Hindi)
   };
 
   // Check which script the text matches
@@ -24,20 +24,9 @@ export const detectLanguage = (text) => {
     return 'english';
   }
   
-  // For Hindi/Marathi, we check if ANY part of the text contains Devanagari script
+  // For Hindi, we check if ANY part of the text contains Devanagari script
   if (scripts.devanagari.test(text)) {
     console.log('Detected Devanagari script');
-    
-    // Since we can't easily distinguish between Hindi and Marathi (they use the same script),
-    // we'll return the current language if it's one of these two, otherwise default to Hindi
-    const currentLanguage = document.documentElement.lang;
-    
-    if (currentLanguage === 'marathi') {
-      console.log('Current language is Marathi, maintaining it');
-      return 'marathi';
-    }
-    
-    console.log('Defaulting to Hindi for Devanagari script');
     return 'hindi';
   }
   
@@ -60,8 +49,7 @@ export const LanguageProvider = ({ children }) => {
       // Also set the lang attribute on the html element for better browser support
       document.querySelector('html').setAttribute('lang', 
         language === 'english' ? 'en' : 
-        language === 'hindi' ? 'hi' : 
-        language === 'marathi' ? 'mr' : 'en'
+        language === 'hindi' ? 'hi' : 'en'
       );
     }
   }, [language]);
