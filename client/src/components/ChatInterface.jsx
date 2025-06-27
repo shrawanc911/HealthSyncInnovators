@@ -8,7 +8,11 @@ import {
   Cpu,
   User,
   Send,
+  Keyboard as KeyboardIcon,
 } from "lucide-react";
+import AudioRecorder from "./AudioRecorder";
+import VirtualKeyboard from "./VirtualKeyboard";
+import "regenerator-runtime/runtime";
 
 const ChatInterface = () => {
   const { language, openLanguageSelector } = useLanguage();
@@ -68,6 +72,9 @@ const ChatInterface = () => {
     setMessages((prev) => [...prev, { sender: "user", text: input }]);
 
     setInput("");
+    
+    // Force AudioRecorder to reset by changing its key
+    // This is handled by the key={messages.length} prop we added
 
     setTimeout(() => {
       setMessages((prev) => [
@@ -167,6 +174,13 @@ const ChatInterface = () => {
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
               placeholder={t.chatPlaceholder}
               className="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+              lang={language === 'hindi' ? 'hi' : language === 'marathi' ? 'mr' : 'en'}
+              inputMode="text"
+              autoComplete="off"
+            />
+            <AudioRecorder 
+              onTranscriptChange={(transcript) => setInput(transcript)} 
+              key={messages.length} // Force re-render when messages change
             />
             <button
               onClick={handleSend}
@@ -175,6 +189,27 @@ const ChatInterface = () => {
               <Send className="h-6 w-6" />
             </button>
           </div>
+          
+          {/* Only show virtual keyboard for Hindi and Marathi */}
+          {(language === 'hindi' || language === 'marathi') && (
+            <div className="mt-2">
+              <VirtualKeyboard 
+                onKeyPress={(button) => {
+                  if (button === '{bksp}') {
+                    setInput(input.slice(0, -1));
+                  } else if (button === '{space}') {
+                    setInput(input + ' ');
+                  } else if (button === '{enter}') {
+                    handleSend();
+                  } else if (button !== '{shift}' && button !== '{lock}' && button !== '{tab}') {
+                    setInput(input + button);
+                  }
+                }}
+                onChangeAll={(inputText) => setInput(inputText)}
+                inputValue={input}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

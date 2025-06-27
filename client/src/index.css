@@ -1,1 +1,44 @@
 @import "tailwindcss";
+
+/* Virtual Keyboard Styles */
+.virtual-keyboard-container {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.keyboard-wrapper {
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hg-theme-default {
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.hg-button {
+  border-radius: 0.25rem !important;
+  background-color: white !important;
+  color: #374151 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.hg-button:active {
+  background-color: #e5e7eb !important;
+}
+
+.hg-button-space {
+  max-width: 400px;
+  width: 100% !important;
+}
+
+/* Adjust for mobile screens */
+@media (max-width: 640px) {
+  .hg-button {
+    height: 40px !important;
+    font-size: 12px !important;
+  }
+}
