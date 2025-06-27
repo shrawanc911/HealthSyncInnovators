@@ -103,6 +103,18 @@ const VirtualKeyboard = ({ onKeyPress, onChangeAll, inputValue }) => {
       onKeyPress(button);
     }
   };
+  
+  // Update keyboard value when inputValue changes from parent
+  useEffect(() => {
+    if (keyboardVisible) {
+      // This ensures the keyboard's internal state stays in sync with the input field
+      const keyboard = document.querySelector('.simple-keyboard');
+      if (keyboard && keyboard.keyboard) {
+        // Use the keyboard instance's setInput method to update the internal value
+        keyboard.keyboard.setInput(inputValue);
+      }
+    }
+  }, [inputValue, keyboardVisible]);
 
   const toggleKeyboard = () => {
     setKeyboardVisible(!keyboardVisible);

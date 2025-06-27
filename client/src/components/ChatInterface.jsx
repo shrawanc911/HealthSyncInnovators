@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, createRef } from "react";
 import { useLanguage, detectLanguage } from "../context/LanguageContext";
 import { translations } from "../translations/translations";
 import {
@@ -27,6 +27,7 @@ const ChatInterface = () => {
   const [input, setInput] = useState("");
   const [languageError, setLanguageError] = useState(false);
   const messagesEndRef = useRef(null);
+  const audioRecorderRef = createRef();
 
   // Update the greeting message when language changes
   useEffect(() => {
@@ -37,6 +38,22 @@ const ChatInterface = () => {
           text: translations[language].chatbotGreeting,
         },
       ]);
+      
+      // Set the document language attribute to help with language detection
+      document.documentElement.lang = language;
+      console.log(`ChatInterface: Language changed to ${language}, updated document.documentElement.lang`);
+      
+      // Reset any language errors when changing languages
+      setLanguageError(false);
+      
+      // Clear input when changing languages
+      setInput("");
+      
+      // Reset audio recorder if it exists
+      if (audioRecorderRef.current) {
+        console.log('Resetting audio recorder after language change');
+        audioRecorderRef.current.resetTranscript();
+      }
     }
   }, [language]);
 
@@ -57,7 +74,9 @@ const ChatInterface = () => {
         ...prev,
         {
           sender: "system",
-          text: `It seems you're typing in ${detectedLanguage}. Please use ${language} or return to language selection.`,
+          text: t.wrongLanguageDetected
+            .replace('{detected}', translations.english[detectedLanguage])
+            .replace('{current}', translations.english[language]),
         },
       ]);
 
@@ -68,20 +87,34 @@ const ChatInterface = () => {
     if (languageError) {
       setLanguageError(false);
     }
-
-    setMessages((prev) => [...prev, { sender: "user", text: input }]);
-
+    const currentInput = input;
     setInput("");
     
-    // Force AudioRecorder to reset by changing its key
-    // This is handled by the key={messages.length} prop we added
+    // Add the user message
+    setMessages((prev) => [...prev, { sender: "user", text: currentInput }]);
+    
+    // Make sure to reset the audio recorder and stop listening
+    if (audioRecorderRef.current) {
+      console.log('Resetting audio recorder after sending message');
+      // Call resetTranscript to stop listening and clear transcript
+      audioRecorderRef.current.resetTranscript();
+      
+      // Double-check after a short delay to ensure it actually stopped
+      setTimeout(() => {
+        console.log('Double-checking audio recorder state after sending message');
+        if (audioRecorderRef.current) {
+          // Call resetTranscript again if needed
+          audioRecorderRef.current.resetTranscript();
+        }
+      }, 1000);
+    }
 
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
           sender: "bot",
-          text: `${t.chatbotGreeting} (${language})`,
+          text: t.chatbotGreeting,
         },
       ]);
     }, 1000);
@@ -171,7 +204,18 @@ const ChatInterface = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleSend();
+                }
+                // Handle backspace key properly
+                if (e.key === "Backspace" && input.length > 0) {
+                  // Let the default behavior handle backspace
+                  // but also update our state to ensure sync with virtual keyboard
+                  setInput(input.slice(0, -1));
+                }
+              }}
               placeholder={t.chatPlaceholder}
               className="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
               lang={language === 'hindi' ? 'hi' : language === 'marathi' ? 'mr' : 'en'}
@@ -179,8 +223,9 @@ const ChatInterface = () => {
               autoComplete="off"
             />
             <AudioRecorder 
+              ref={audioRecorderRef}
               onTranscriptChange={(transcript) => setInput(transcript)} 
-              key={messages.length} // Force re-render when messages change
+              // Using ref instead of key to control the component
             />
             <button
               onClick={handleSend}
