@@ -13,17 +13,29 @@ import {
 import AudioRecorder from "./AudioRecorder";
 import VirtualKeyboard from "./VirtualKeyboard";
 import "regenerator-runtime/runtime";
-
+import axios from "axios";
 const ChatInterface = () => {
   const { language, openLanguageSelector } = useLanguage();
   const t = translations[language];
+  const [isThinking, setIsThinking] = useState(false);
 
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "",
+      text: translations[language].chatbotGreeting,
+    },
+    {
+      sender: "bot",
+      text: translations[language].userName,
     },
   ]);
+  const [user, setUser] = useState({
+    name: "",
+    age: "",
+    gender: "",
+  });
+  const [allSymptoms, setAllSymptoms] = useState([]);
+  const [detailNumber, setDetailNumber] = useState(0);
   const [input, setInput] = useState("");
   const [languageError, setLanguageError] = useState(false);
   const [isUserEditing, setIsUserEditing] = useState(false);
@@ -37,6 +49,10 @@ const ChatInterface = () => {
         {
           sender: "bot",
           text: translations[language].chatbotGreeting,
+        },
+        {
+          sender: "bot",
+          text: translations[language].userName,
         },
       ]);
 
@@ -69,10 +85,8 @@ const ChatInterface = () => {
     if (input.trim() === "") return;
 
     const detectedLanguage = detectLanguage(input);
-
     if (detectedLanguage && detectedLanguage !== language) {
       setLanguageError(true);
-
       setMessages((prev) => [
         ...prev,
         {
@@ -82,53 +96,164 @@ const ChatInterface = () => {
             .replace("{current}", translations.english[language]),
         },
       ]);
-
       setInput("");
       return;
     }
 
-    if (languageError) {
-      setLanguageError(false);
-    }
+    if (languageError) setLanguageError(false);
+
     const currentInput = input;
     setInput("");
 
-    // Add the user message
     setMessages((prev) => [...prev, { sender: "user", text: currentInput }]);
+    // setAllSymptoms((prev) => [...prev, currentInput]);
 
-    // Make sure to reset the audio recorder and stop listening
-    if (audioRecorderRef.current) {
-      console.log("Resetting audio recorder after sending message");
-      // Call resetTranscript to stop listening and clear transcript
-      audioRecorderRef.current.resetTranscript();
-
-      // Double-check after a short delay to ensure it actually stopped
-      setTimeout(() => {
-        console.log(
-          "Double-checking audio recorder state after sending message"
-        );
-        if (audioRecorderRef.current) {
-          // Call resetTranscript again if needed
-          audioRecorderRef.current.resetTranscript();
-        }
-      }, 1000);
-    }
-
-    setTimeout(() => {
+    if (detailNumber === 0) {
+      setUser((prev) => ({ ...prev, name: currentInput }));
       setMessages((prev) => [
         ...prev,
-        {
-          sender: "bot",
-          text: t.chatbotGreeting,
-        },
+        { sender: "bot", text: translations[language].userAge },
       ]);
-    }, 1000);
+      setDetailNumber(1);
+    } else if (detailNumber === 1) {
+      setUser((prev) => ({ ...prev, age: currentInput }));
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: translations[language].userGender },
+      ]);
+      setDetailNumber(2);
+    } else if (detailNumber === 2) {
+      setUser((prev) => ({ ...prev, gender: currentInput }));
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: translations[language].firstQuestion },
+      ]);
+      setDetailNumber(3);
+    } else {
+      // After collecting name, age, gender, normal chat with AI
+      setAllSymptoms((prev)=>[...prev,currentInput])
+      sendPrompt(allSymptoms);
+    }
+
+    if (audioRecorderRef.current) {
+      audioRecorderRef.current.resetTranscript();
+      setTimeout(() => {
+        audioRecorderRef.current?.resetTranscript();
+      }, 1000);
+    }
+  };
+
+  // AI Prompt Function Outside
+  const sendPrompt = async (prompt) => {
+    if (prompt.length==0) return;
+    setIsThinking(true);
+    setMessages((prev) => [...prev, { sender: "bot", text: "Thinking..." }]);
+
+    try {
+      const res = await axios.post("http://localhost:5000/ask", { prompt });
+
+      // // If response contains JSON string inside/ Clean response: Remove ```json ... ``` if present
+      // let cleaned = res.data.response.trim();
+      // if (cleaned.startsWith("```json")) {
+      //   cleaned = cleaned
+      //     .replace(/```json\s*/, "")
+      //     .replace(/```$/, "")
+      //     .trim();
+      // } else if (cleaned.startsWith("```")) {
+      //   cleaned = cleaned
+      //     .replace(/```\s*/, "")
+      //     .replace(/```$/, "")
+      //     .trim();
+      // }
+
+      // const parsed = JSON.parse(cleaned);
+      // console.log(parsed);
+
+      let cleaned = res.data.response.trim();
+
+  if (cleaned.startsWith("```json")) {
+    cleaned = cleaned.replace(/```json\s*/, "").replace(/```$/, "").trim();
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/```\s*/, "").replace(/```$/, "").trim();
+  }
+
+  console.log("CLEANED JSON:", cleaned);
+
+  const parsed = JSON.parse(cleaned); 
+  console.log("Parsed JSON:", parsed);
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { sender: "bot", text: parsed["follow_up_questions"][0] },
+        { sender: "bot", text: parsed["follow_up_questions"][1] },
+        { sender: "bot", text: parsed["follow_up_questions"][2] },
+      ]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { sender: "bot", text: "Error getting AI response." },
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   // Only update input from transcript if user is not editing
   const handleTranscriptChange = (transcript) => {
     if (!isUserEditing) {
       setInput(transcript);
+    }
+  };
+
+  const handlegenerate = async () => {
+    try {
+      setIsThinking(true);
+      
+      console.log(allSymptoms);
+    setMessages((prev) => [...prev, { sender: "user", text: "Generating..." }]);
+      const res = await axios.post("http://localhost:5000/gen", {
+        prompt: allSymptoms,
+      });
+
+      // If response contains JSON string inside/ Clean response: Remove ```json ... ``` if present
+      let cleaned = res.data.response.trim();
+
+if (cleaned.startsWith("```json")) {
+  cleaned = cleaned.replace(/```json\s*/, "").replace(/```$/, "").trim();
+} else if (cleaned.startsWith("```")) {
+  cleaned = cleaned.replace(/```\s*/, "").replace(/```$/, "").trim();
+}
+
+console.log("CLEANED RESPONSE:", cleaned);
+
+try {
+  const parsed = JSON.parse(cleaned);
+  console.log("Parsed JSON:", parsed);
+
+  setMessages((prev) => [
+      ...prev.slice(0, -1),
+      { sender: "user", text: "Generated Report" },
+      { sender: "bot", text: `Category: ${parsed.category || "N/A"}` },
+      { sender: "bot", text: `Doctor: ${parsed.doctor || "N/A"}` },
+      { sender: "bot", text: `Reason: ${parsed.reason || "N/A"}` },
+      { sender: "bot", text: `Remedy: ${parsed.remedy || "N/A"}` },
+    ]);
+} catch (err) {
+  console.error("Failed to parse JSON:", err.message);
+  setMessages((prev) => [
+    ...prev.slice(0, -1),
+    { sender: "bot", text: cleaned || "AI response was empty." },
+  ]);
+}
+
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { sender: "bot", text: "Error getting AI response." },
+      ]);
+    } finally {
+      setIsThinking(false);
     }
   };
 
@@ -249,9 +374,18 @@ const ChatInterface = () => {
 
             <button
               onClick={handleSend}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-3 w-12 h-12 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg"
+              disabled={isThinking}
+              className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-3 w-12 h-12 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg ${
+                isThinking ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               <Send className="h-5 w-5" />
+            </button>
+            <button disabled={isThinking}
+              className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-3 w-fit h-12 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg ${
+                isThinking ? "opacity-50 cursor-not-allowed" : ""
+              }`} onClick={handlegenerate}>
+              Generate
             </button>
           </div>
 

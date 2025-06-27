@@ -17,8 +17,12 @@ export const translations = {
     stopRecording: 'Stop voice recording',
     microphoneNotAvailable: 'Microphone access is required for voice recording',
     browserNotSupported: 'Your browser does not support speech recognition',
+    userName: "Enter your name...",
+    userAge: "Enter your age...",
+    userGender: "Enter your gender...",
     showKeyboard: 'Show Keyboard',
     hideKeyboard: 'Hide Keyboard',
+    firstQuestion: "Tell me about your symptoms..."
   },
   hindi: {
     welcome: 'हेल्थ चैट में आपका स्वागत है',
@@ -38,5 +42,9 @@ export const translations = {
     browserNotSupported: 'आपका ब्राउज़र स्पीच रिकग्निशन का समर्थन नहीं करता है',
     showKeyboard: 'कीबोर्ड दिखाएं',
     hideKeyboard: 'कीबोर्ड छिपाएं',
+    userName:"अपना नाम दर्ज करें...",
+    userAge: "अपनी आयु दर्ज करें...",
+    userGender: "अपना लिंग दर्ज करें...",
+    firstQuestion: "मुझे अपने लक्षणों के बारे में बताओ..."
   },
 };
