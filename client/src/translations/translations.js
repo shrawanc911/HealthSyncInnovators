@@ -5,7 +5,7 @@ export const translations = {
     welcome: 'Welcome to Health Chat',
     selectLanguage: 'Select your preferred language',
     english: 'English',
-    hindi: 'Hindi',
+    hindi: 'हिन्दी',
     chatPlaceholder: 'Type your message here...',
     send: 'Send',
     chatbotGreeting: 'Hello! How can I help you with your health questions today?',

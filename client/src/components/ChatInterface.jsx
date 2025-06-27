@@ -38,20 +38,22 @@ const ChatInterface = () => {
           text: translations[language].chatbotGreeting,
         },
       ]);
-      
+
       // Set the document language attribute to help with language detection
       document.documentElement.lang = language;
-      console.log(`ChatInterface: Language changed to ${language}, updated document.documentElement.lang`);
-      
+      console.log(
+        `ChatInterface: Language changed to ${language}, updated document.documentElement.lang`
+      );
+
       // Reset any language errors when changing languages
       setLanguageError(false);
-      
+
       // Clear input when changing languages
       setInput("");
-      
+
       // Reset audio recorder if it exists
       if (audioRecorderRef.current) {
-        console.log('Resetting audio recorder after language change');
+        console.log("Resetting audio recorder after language change");
         audioRecorderRef.current.resetTranscript();
       }
     }
@@ -75,8 +77,8 @@ const ChatInterface = () => {
         {
           sender: "system",
           text: t.wrongLanguageDetected
-            .replace('{detected}', translations.english[detectedLanguage])
-            .replace('{current}', translations.english[language]),
+            .replace("{detected}", translations.english[detectedLanguage])
+            .replace("{current}", translations.english[language]),
         },
       ]);
 
@@ -89,19 +91,21 @@ const ChatInterface = () => {
     }
     const currentInput = input;
     setInput("");
-    
+
     // Add the user message
     setMessages((prev) => [...prev, { sender: "user", text: currentInput }]);
-    
+
     // Make sure to reset the audio recorder and stop listening
     if (audioRecorderRef.current) {
-      console.log('Resetting audio recorder after sending message');
+      console.log("Resetting audio recorder after sending message");
       // Call resetTranscript to stop listening and clear transcript
       audioRecorderRef.current.resetTranscript();
-      
+
       // Double-check after a short delay to ensure it actually stopped
       setTimeout(() => {
-        console.log('Double-checking audio recorder state after sending message');
+        console.log(
+          "Double-checking audio recorder state after sending message"
+        );
         if (audioRecorderRef.current) {
           // Call resetTranscript again if needed
           audioRecorderRef.current.resetTranscript();
@@ -121,16 +125,15 @@ const ChatInterface = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <header className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 shadow-lg">
+    <div className="flex flex-col h-screen bg-white">
+      <header className="bg-white text-white p-4 shadow-sm">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold flex items-center">
-            <MessageSquare className="h-6 w-6 mr-2" />
-            {t.welcome}
+          <h1 className="text-3xl font-semibold flex items-center text-black text-opacity-90 hover:text-opacity-100 transition-opacity duration-300 font-agile">
+            Triage Ai
           </h1>
           <button
             onClick={openLanguageSelector}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center transition-colors shadow-md cursor-pointer"
+            className="border-gray-200 border text-black px-4 py-2 rounded-lg text-md font-medium flex items-center transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-103 cursor-pointer "
           >
             <Languages className="h-4 w-4 mr-2" />
             {t.changeLanguage}
@@ -162,7 +165,7 @@ const ChatInterface = () => {
       )}
 
       {/* Chat */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 container mx-auto max-w-4xl">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 container mx-auto max-w-4xl no-scrollbar">
         {messages.map((message, index) => (
           <div
             key={index}
@@ -195,10 +198,19 @@ const ChatInterface = () => {
         ))}
         <div ref={messagesEndRef} />
       </div>
+      <style>{`
+  .no-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and other WebKit browsers */
+  }
+`}</style>
 
       {/* Input */}
-      <div className="border-t border-gray-200 p-4 bg-white shadow-md">
-        <div className="container mx-auto max-w-4xl">
+      <div className=" p-4 bg-white shadow-md px-120">
+        <div className="z-50 bg-white rounded-2xl p-4 backdrop-filter backdrop-blur-md bg-opacity-80 shadow-xl border border-gray-300 transition-all duration-300 hover:shadow-2xl py-6 px">
           <div className="flex space-x-2">
             <input
               type="text"
@@ -217,36 +229,41 @@ const ChatInterface = () => {
                 }
               }}
               placeholder={t.chatPlaceholder}
-              className="flex-1 border border-gray-300 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
-              lang={language === 'hindi' ? 'hi' : 'en'}
+              className="flex-1 border border-gray-300 rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+              lang={language === "hindi" ? "hi" : "en"}
               inputMode="text"
               autoComplete="off"
             />
-            <AudioRecorder 
+            <AudioRecorder
               ref={audioRecorderRef}
-              onTranscriptChange={(transcript) => setInput(transcript)} 
+              onTranscriptChange={(transcript) => setInput(transcript)}
               // Using ref instead of key to control the component
             />
+
             <button
               onClick={handleSend}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full p-3 w-14 h-14 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-3 w-12 h-12 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg"
             >
-              <Send className="h-6 w-6" />
+              <Send className="h-5 w-5" />
             </button>
           </div>
-          
+
           {/* Only show virtual keyboard for Hindi */}
-          {language === 'hindi' && (
+          {language === "hindi" && (
             <div className="mt-2">
-              <VirtualKeyboard 
+              <VirtualKeyboard
                 onKeyPress={(button) => {
-                  if (button === '{bksp}') {
+                  if (button === "{bksp}") {
                     setInput(input.slice(0, -1));
-                  } else if (button === '{space}') {
-                    setInput(input + ' ');
-                  } else if (button === '{enter}') {
+                  } else if (button === "{space}") {
+                    setInput(input + " ");
+                  } else if (button === "{enter}") {
                     handleSend();
-                  } else if (button !== '{shift}' && button !== '{lock}' && button !== '{tab}') {
+                  } else if (
+                    button !== "{shift}" &&
+                    button !== "{lock}" &&
+                    button !== "{tab}"
+                  ) {
                     setInput(input + button);
                   }
                 }}
