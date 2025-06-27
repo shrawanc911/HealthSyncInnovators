@@ -1,12 +1,28 @@
-import { useState } from "react";
+import { LanguageProvider, useLanguage } from "./context/LanguageContext";
+import LanguageSelectorModal from "./components/LanguageSelectorModal";
+import ChatInterface from "./components/ChatInterface";
 
-function App() {
-  const [count, setCount] = useState(0);
+// Main App content that uses the language context
+const AppContent = () => {
+  const { language, isLanguageSelectorOpen } = useLanguage();
 
   return (
-    <>
-      <h1 className="Font-bold text-8xl text-red-600">Hello</h1>
-    </>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Always show the chat interface if a language is selected */}
+      {language && <ChatInterface />}
+      
+      {/* Show the language selector modal when it's open */}
+      <LanguageSelectorModal isOpen={isLanguageSelectorOpen} />
+    </div>
+  );
+};
+
+// Main App component that provides the language context
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 
