@@ -26,6 +26,7 @@ const ChatInterface = () => {
   ]);
   const [input, setInput] = useState("");
   const [languageError, setLanguageError] = useState(false);
+  const [isUserEditing, setIsUserEditing] = useState(false);
   const messagesEndRef = useRef(null);
   const audioRecorderRef = createRef();
 
@@ -124,6 +125,13 @@ const ChatInterface = () => {
     }, 1000);
   };
 
+  // Only update input from transcript if user is not editing
+  const handleTranscriptChange = (transcript) => {
+    if (!isUserEditing) {
+      setInput(transcript);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-white">
       <header className="bg-white text-white p-4 shadow-sm">
@@ -215,17 +223,17 @@ const ChatInterface = () => {
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onFocus={() => setIsUserEditing(true)}
+              onBlur={() => setIsUserEditing(false)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setIsUserEditing(true);
+              }}
               onKeyDown={(e) => {
+                setIsUserEditing(true);
                 if (e.key === "Enter") {
                   e.preventDefault();
                   handleSend();
-                }
-                // Handle backspace key properly
-                if (e.key === "Backspace" && input.length > 0) {
-                  // Let the default behavior handle backspace
-                  // but also update our state to ensure sync with virtual keyboard
-                  setInput(input.slice(0, -1));
                 }
               }}
               placeholder={t.chatPlaceholder}
@@ -236,8 +244,7 @@ const ChatInterface = () => {
             />
             <AudioRecorder
               ref={audioRecorderRef}
-              onTranscriptChange={(transcript) => setInput(transcript)}
-              // Using ref instead of key to control the component
+              onTranscriptChange={handleTranscriptChange}
             />
 
             <button
