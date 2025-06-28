@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect, createRef } from "react";
 import { useLanguage, detectLanguage } from "../context/LanguageContext";
 import { translations } from "../translations/translations";
-import {
-  MessageSquare,
-  Languages,
-  AlertTriangle,
-  Cpu,
-  User,
-  Send,
-  Keyboard as KeyboardIcon,
-} from "lucide-react";
+import { Languages, AlertTriangle, Cpu, User, Send } from "lucide-react";
 import AudioRecorder from "./AudioRecorder";
 import VirtualKeyboard from "./VirtualKeyboard";
 import "regenerator-runtime/runtime";
@@ -131,8 +123,8 @@ const ChatInterface = () => {
       setDetailNumber(3);
     } else {
       // After collecting name, age, gender, normal chat with AI
-      setAllSymptoms((prev)=>[...prev,currentInput])
-      sendPrompt(allSymptoms);
+      setAllSymptoms((prev) => [...prev, currentInput]);
+      sendPrompt(currentInput);
     }
 
     if (audioRecorderRef.current) {
@@ -145,12 +137,16 @@ const ChatInterface = () => {
 
   // AI Prompt Function Outside
   const sendPrompt = async (prompt) => {
-    if (prompt.length==0) return;
+    if (prompt.length == 0) return;
     setIsThinking(true);
     setMessages((prev) => [...prev, { sender: "bot", text: "Thinking..." }]);
+    const apiURL =
+      language === "hindi"
+        ? "http://localhost:5000/api/AI/ask-hi"
+        : "http://localhost:5000/api/AI/ask-en";
 
     try {
-      const res = await axios.post("http://localhost:5000/ask", { prompt });
+      const res = await axios.post(apiURL, { prompt });
 
       // // If response contains JSON string inside/ Clean response: Remove ```json ... ``` if present
       // let cleaned = res.data.response.trim();
@@ -171,16 +167,22 @@ const ChatInterface = () => {
 
       let cleaned = res.data.response.trim();
 
-  if (cleaned.startsWith("```json")) {
-    cleaned = cleaned.replace(/```json\s*/, "").replace(/```$/, "").trim();
-  } else if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/```\s*/, "").replace(/```$/, "").trim();
-  }
+      if (cleaned.startsWith("```json")) {
+        cleaned = cleaned
+          .replace(/```json\s*/, "")
+          .replace(/```$/, "")
+          .trim();
+      } else if (cleaned.startsWith("```")) {
+        cleaned = cleaned
+          .replace(/```\s*/, "")
+          .replace(/```$/, "")
+          .trim();
+      }
 
-  console.log("CLEANED JSON:", cleaned);
+      console.log("CLEANED JSON:", cleaned);
 
-  const parsed = JSON.parse(cleaned); 
-  console.log("Parsed JSON:", parsed);
+      const parsed = JSON.parse(cleaned);
+      console.log("Parsed JSON:", parsed);
       setMessages((prev) => [
         ...prev.slice(0, -1),
         { sender: "bot", text: parsed["follow_up_questions"][0] },
@@ -208,44 +210,70 @@ const ChatInterface = () => {
   const handlegenerate = async () => {
     try {
       setIsThinking(true);
-      
+
       console.log(allSymptoms);
-    setMessages((prev) => [...prev, { sender: "user", text: "Generating..." }]);
-      const res = await axios.post("http://localhost:5000/gen", {
-        prompt: allSymptoms,
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", text: "Generating..." },
+      ]);
+      
+    const apiURL =
+      language === "hindi"
+        ? "http://localhost:5000/api/AI/gen-hi"
+        : "http://localhost:5000/api/AI/gen-en";
+      const res = await axios.post(apiURL, {
+        prompt: allSymptoms.join(" "),
       });
 
       // If response contains JSON string inside/ Clean response: Remove ```json ... ``` if present
       let cleaned = res.data.response.trim();
 
-if (cleaned.startsWith("```json")) {
-  cleaned = cleaned.replace(/```json\s*/, "").replace(/```$/, "").trim();
-} else if (cleaned.startsWith("```")) {
-  cleaned = cleaned.replace(/```\s*/, "").replace(/```$/, "").trim();
-}
+      if (cleaned.startsWith("```json")) {
+        cleaned = cleaned
+          .replace(/```json\s*/, "")
+          .replace(/```$/, "")
+          .trim();
+      } else if (cleaned.startsWith("```")) {
+        cleaned = cleaned
+          .replace(/```\s*/, "")
+          .replace(/```$/, "")
+          .trim();
+      }
 
-console.log("CLEANED RESPONSE:", cleaned);
+      console.log("CLEANED RESPONSE:", cleaned);
 
-try {
-  const parsed = JSON.parse(cleaned);
-  console.log("Parsed JSON:", parsed);
+      try {
+        const parsed = JSON.parse(cleaned);
+        console.log("Parsed JSON:", parsed);
+        if(parsed.category){
 
-  setMessages((prev) => [
-      ...prev.slice(0, -1),
-      { sender: "user", text: "Generated Report" },
-      { sender: "bot", text: `Category: ${parsed.category || "N/A"}` },
-      { sender: "bot", text: `Doctor: ${parsed.doctor || "N/A"}` },
-      { sender: "bot", text: `Reason: ${parsed.reason || "N/A"}` },
-      { sender: "bot", text: `Remedy: ${parsed.remedy || "N/A"}` },
-    ]);
-} catch (err) {
-  console.error("Failed to parse JSON:", err.message);
-  setMessages((prev) => [
-    ...prev.slice(0, -1),
-    { sender: "bot", text: cleaned || "AI response was empty." },
-  ]);
-}
+          setMessages((prev) => [
+            ...prev.slice(0, -1),
+            { sender: "user", text: "Generated Report" },
+            { sender: "bot", text: `Category: ${parsed.category || "N/A"}` },
+            { sender: "bot", text: `Doctor: ${parsed.doctor || "N/A"}` },
+            { sender: "bot", text: `Reason: ${parsed.reason || "N/A"}` },
+            { sender: "bot", text: `Remedy: ${parsed.remedy || "N/A"}` },
+          ]);
+        }else{
+          setMessages((prev) => [
+            ...prev.slice(0, -1),
+            { sender: "user", text: "Generated Report" },
+            { sender: "bot", text: `श्रेणी: ${parsed["श्रेणी"] || "N/A"}` },
+            { sender: "bot", text: `कारण: ${parsed["कारण"] || "N/A"}` },
+            { sender: "bot", text: `डॉक्टर: ${parsed["डॉक्टर"] || "N/A"}` },
+            { sender: "bot", text: `उपचार: ${parsed["उपचार"] || "N/A"}` },
+          ]);
 
+
+        }
+      } catch (err) {
+        console.error("Failed to parse JSON:", err.message);
+        setMessages((prev) => [
+          ...prev.slice(0, -1),
+          { sender: "bot", text: cleaned || "AI response was empty." },
+        ]);
+      }
     } catch (err) {
       console.error(err);
       setMessages((prev) => [
@@ -323,7 +351,7 @@ try {
               {message.text}
             </div>
             {message.sender === "user" && (
-              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 ml-2 mt-1">
+              <div className="h-8 w-8 rounded-full  flex items-center justify-center text-gray-500 ml-2 mt-1">
                 <User className="h-5 w-5" />
               </div>
             )}
@@ -381,10 +409,13 @@ try {
             >
               <Send className="h-5 w-5" />
             </button>
-            <button disabled={isThinking}
+            <button
+              disabled={isThinking}
               className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-3 w-fit h-12 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg ${
                 isThinking ? "opacity-50 cursor-not-allowed" : ""
-              }`} onClick={handlegenerate}>
+              }`}
+              onClick={handlegenerate}
+            >
               Generate
             </button>
           </div>

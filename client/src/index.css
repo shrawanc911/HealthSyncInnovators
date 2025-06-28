@@ -6,7 +6,6 @@
   margin-top: 0.5rem;
 }
 
-
 .keyboard-wrapper {
   margin-top: 0.5rem;
   border-radius: 0.5rem;
@@ -45,6 +44,7 @@
   }
 }
 
+/* Global Fonts */
 @font-face {
   font-family: "Agile";
   src: url("/path-to-agile-font/agile.woff2") format("woff2"),
@@ -53,6 +53,20 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "ES Build";
+  src: url("/path-to-esbuild-font/esbuild.woff2") format("woff2"),
+       url("/path-to-esbuild-font/esbuild.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Apply ES Build globally */
+body {
+  font-family: "ES Build Trial", sans-serif;
+}
+
+/* Logo keeps Agile font */
 .font-agile {
-  font-family: "Agile", sans-serif; /* Fallback to sans-serif if Agile fails to load */
+  font-family: "Agile", sans-serif;
 }
