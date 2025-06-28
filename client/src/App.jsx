@@ -1,7 +1,8 @@
 import { LanguageProvider, useLanguage } from "./context/LanguageContext";
 import LanguageSelectorModal from "./components/LanguageSelectorModal";
 import ChatInterface from "./components/ChatInterface";
-
+import {BrowserRouter,Routes,Route} from "react-router-dom"
+import Dashboard from "./components/Dashboard";
 // Main App content that uses the language context
 const AppContent = () => {
   const { language, isLanguageSelectorOpen } = useLanguage();
@@ -20,9 +21,16 @@ const AppContent = () => {
 // Main App component that provides the language context
 function App() {
   return (
-    <LanguageProvider>
-      <AppContent />
-    </LanguageProvider>
+    <BrowserRouter>
+      <LanguageProvider>
+        <Routes>
+          <Route path="/chat-bot" element={<AppContent/>}/>
+          <Route path="/dashboard" element={<Dashboard/>}/>
+        </Routes>
+        {/* <AppContent /> */}
+      </LanguageProvider>
+
+    </BrowserRouter>
   );
 }
 

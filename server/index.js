@@ -7,6 +7,7 @@ import getSymptomsHindi from "./getSymptomsHindi.js";
 import getFollowUpHindi from "./getFollowUp2.js";
 import mongoose from "mongoose";
 import aiRoutes from "./routes/AIRoutes.js"
+import patientRoutes from "./routes/patientRoutes.js"
 
 const app = express();
 app.use(cors());
@@ -15,6 +16,11 @@ app.use(express.json());
 const PORT = 5000;
 
 app.use('/api/AI',aiRoutes);
+app.use('/api/patient',patientRoutes);
+
+mongoose.connect("mongodb://127.0.0.1:27017/HealthSyncInovators")
+  .then(()=> console.log("Mongoose Connected Successfully"))
+  .catch((e)=> console.log("Error while connecting mongoose:",e))
 
 // app.post("/ask-en", async (req, res) => {
 //   let { prompt } = req.body;

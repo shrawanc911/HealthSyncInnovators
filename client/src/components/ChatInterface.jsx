@@ -10,6 +10,7 @@ const ChatInterface = () => {
   const { language, openLanguageSelector } = useLanguage();
   const t = translations[language];
   const [isThinking, setIsThinking] = useState(false);
+  const [submitDetailsButton,setSubmitDetailsButton] = useState(false);
 
   const [messages, setMessages] = useState([
     {
@@ -25,6 +26,7 @@ const ChatInterface = () => {
     name: "",
     age: "",
     gender: "",
+    doctorType:"",
   });
   const [allSymptoms, setAllSymptoms] = useState([]);
   const [detailNumber, setDetailNumber] = useState(0);
@@ -255,7 +257,12 @@ const ChatInterface = () => {
             { sender: "bot", text: `Reason: ${parsed.reason || "N/A"}` },
             { sender: "bot", text: `Remedy: ${parsed.remedy || "N/A"}` },
           ]);
+          if (parsed.category == "Requires Doctor Consultation"){
+            setSubmitDetailsButton(true);
+          }
+          setUser((prev)=>({...prev,doctorType:parsed.doctor}));
         }else{
+          setUser((prev)=>({...prev,doctorType:parsed["डॉक्टर"]}));
           setMessages((prev) => [
             ...prev.slice(0, -1),
             { sender: "user", text: "Generated Report" },
@@ -264,9 +271,12 @@ const ChatInterface = () => {
             { sender: "bot", text: `डॉक्टर: ${parsed["डॉक्टर"] || "N/A"}` },
             { sender: "bot", text: `उपचार: ${parsed["उपचार"] || "N/A"}` },
           ]);
-
-
+          if(parsed["श्रेणी"]=="डॉक्टर परामर्श आवश्यक"){
+            setSubmitDetailsButton(true)
+          }
+          
         }
+        
       } catch (err) {
         console.error("Failed to parse JSON:", err.message);
         setMessages((prev) => [
@@ -284,6 +294,24 @@ const ChatInterface = () => {
       setIsThinking(false);
     }
   };
+
+  const handleSubmitDetailsButton = async()=>{
+    try{
+      const response = await axios.post("http://localhost:5000/api/patient/add-appointment",{
+        ...user,
+        symptoms: allSymptoms
+      })
+      setMessages((prev)=>[
+        ...prev,
+        {sender:"bot",text:"Appointment booked!"}
+      ])
+      console.log(response.data);
+    }catch(e){
+      console.log("Error while handleSubmitDetailsButton function:",e);
+    }finally{
+      setSubmitDetailsButton(false)
+    }
+  }
 
   return (
     <div className="flex flex-col h-screen bg-white">
@@ -418,6 +446,15 @@ const ChatInterface = () => {
             >
               Generate
             </button>
+            {submitDetailsButton && <button
+              disabled={isThinking}
+              className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-3 w-fit h-12 flex items-center justify-center hover:from-blue-600 hover:to-blue-700 transition-colors shadow-md hover:shadow-lg ${
+                isThinking ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={handleSubmitDetailsButton}
+            >
+              Schedule Appointment
+            </button>}
           </div>
 
           {/* Only show virtual keyboard for Hindi */}

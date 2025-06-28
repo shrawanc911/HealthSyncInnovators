@@ -16,4 +16,17 @@ const addAppointment = async(req,res) => {
     }
 }
 
-export { addAppointment }
+const getPatient = async(req,res) => {
+    try{
+        const response = await Patient.find();
+        if(!response){
+            return res.status(404).json({message:"Data not found"});
+        }
+        return res.status(200).json({data:response});
+    }catch(e){
+        console.log("Error whille getPatient:",e);
+        return res.status(500).json({message:"Internal Server error",error:e})
+    }
+}
+
+export { addAppointment , getPatient }
